@@ -1,6 +1,6 @@
 # About
 
-modified conan package for abseil:
+modified conan package for perfetto:
 
 * uses `git clone`
 * supports sanitizers, see [https://github.com/google/sanitizers/wiki/MemorySanitizerLibcxxHowTo#instrumented-gtest](https://github.com/google/sanitizers/wiki/MemorySanitizerLibcxxHowTo#instrumented-gtest)
@@ -51,6 +51,8 @@ CONAN_REVISIONS_ENABLED=1 \
     conan create . \
       conan/stable \
       -s build_type=Release \
+      -o perfetto:is_clang=True \
+      -o perfetto:is_hermetic_clang=False \
       --profile clang \
       --build missing \
       --build cascade
@@ -85,7 +87,7 @@ See options:
 
 ```bash
 conan source .
-conan install --build missing -o perfetto:is_clang=True -o perfetto:is_hermetic_clang=False --profile clang  -s build_type=Release .
+conan install --build missing -o perfetto:is_clang=True -o perfetto:is_hermetic_clang=False --profile clang -s build_type=Release .
 conan build . --build-folder=.
 conan package --build-folder=. .
 conan export-pkg . conan/stable --settings build_type=Release --force --profile clang

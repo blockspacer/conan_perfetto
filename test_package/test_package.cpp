@@ -3,47 +3,25 @@
 #include <iostream>
 #include <vector>
 
-#include "absl/strings/str_cat.h"
-#include "absl/strings/str_split.h"
-#include "absl/container/flat_hash_map.h"
-#include "absl/container/flat_hash_set.h"
-#include "absl/numeric/int128.h"
-#include "absl/time/time.h"
+#include <perfetto/sdk/perfetto.h>
+
+#include "chrome_track_event.pbzero.h"
 
 int main()
 {
-    absl::flat_hash_set<std::string> set1;
-    absl::flat_hash_map<int, std::string> map1;
-    absl::flat_hash_set<std::string> set2 = {
-        {"huey"},
-        {"dewey"},
-        {"louie"},
-    };
-    absl::flat_hash_map<int, std::string> map2 = {
-        {1, "huey"},
-        {2, "dewey"},
-        {3, "louie"},
-    };
-    absl::flat_hash_set<std::string> set3(set2);
-    absl::flat_hash_map<int, std::string> map3(map2);
+  perfetto::TracingInitArgs args;
 
-    absl::flat_hash_set<std::string> set4;
-    set4 = set3;
-    absl::flat_hash_map<int, std::string> map4;
-    map4 = map3;
+  // The backends determine where trace events are recorded. You may select one
+  // or more of:
 
-    absl::flat_hash_set<std::string> set5(std::move(set4));
-    absl::flat_hash_map<int, std::string> map5(std::move(map4));
-    absl::flat_hash_set<std::string> set6;
-    set6 = std::move(set5);
-    absl::flat_hash_map<int, std::string> map6;
-    map6 = std::move(map5);
+  // 1) The in-process backend only records within the app itself.
+  args.backends |= perfetto::kInProcessBackend;
 
-    const absl::uint128 big = absl::Uint128Max();
-    std::cout << absl::StrCat("Arg ", "foo", "\n");
-    std::vector<std::string> v = absl::StrSplit("a,b,,c", ',');
+  // 2) The system backend writes events into a system Perfetto daemon,
+  //    allowing merging app and system events (e.g., ftrace) on the same
+  //    timeline. Requires the Perfetto `traced` daemon to be running (e.g.,
+  //    on Android Pie and newer).
+  args.backends |= perfetto::kSystemBackend;
 
-    absl::Time t1 = absl::Now();
-    absl::Time t2 = absl::Time();
-    absl::Time t3 = absl::UnixEpoch();
+  perfetto::Tracing::Initialize(args);
 }

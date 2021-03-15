@@ -31,11 +31,11 @@ class TestPackageConan(conan_build_helper.CMakePackage):
         self.build_requires("cmake_helper_utils/master@conan/stable")
 
         # TODO: separate is_lsan
-        if self.options['abseil'].is_tsan \
-            or self.options['abseil'].is_lsan \
-            or self.options['abseil'].is_msan \
-            or self.options['abseil'].is_asan \
-            or self.options['abseil'].is_ubsan:
+        if self.options['perfetto'].is_tsan \
+            or self.options['perfetto'].is_lsan \
+            or self.options['perfetto'].is_msan \
+            or self.options['perfetto'].is_asan \
+            or self.options['perfetto'].is_ubsan:
           self.build_requires("cmake_sanitizers/master@conan/stable")
 
         # provides clang-tidy, clang-format, IWYU, scan-build, etc.
@@ -45,13 +45,28 @@ class TestPackageConan(conan_build_helper.CMakePackage):
     def build(self):
         cmake = CMake(self)
 
-        # TODO: separate is_lsan
-        cmake.definitions['ENABLE_ASAN'] = self.options['abseil'].is_lsan
+        self.output.info("PERFETTO_SDK_DIR={}".format(self.deps_env_info['perfetto'].PERFETTO_SDK_DIR))
+        cmake.definitions['PERFETTO_SDK_DIR'] = self.deps_env_info['perfetto'].PERFETTO_SDK_DIR
 
-        cmake.definitions['ENABLE_UBSAN'] = self.options['abseil'].is_ubsan
-        cmake.definitions['ENABLE_ASAN'] = self.options['abseil'].is_asan
-        cmake.definitions['ENABLE_MSAN'] = self.options['abseil'].is_msan
-        cmake.definitions['ENABLE_TSAN'] = self.options['abseil'].is_tsan
+        self.output.info("PERFETTO_GEN_DIR={}".format(self.deps_env_info['perfetto'].PERFETTO_GEN_DIR))
+        cmake.definitions['PERFETTO_GEN_DIR'] = self.deps_env_info['perfetto'].PERFETTO_GEN_DIR
+
+        self.output.info("PERFETTO_protozero_plugin_BIN={}".format(self.deps_env_info['perfetto'].PERFETTO_protozero_plugin_BIN))
+        cmake.definitions['PERFETTO_protozero_plugin_BIN'] = self.deps_env_info['perfetto'].PERFETTO_protozero_plugin_BIN
+        
+        self.output.info("PERFETTO_PROTOC_BIN={}".format(self.deps_env_info['perfetto'].PERFETTO_PROTOC_BIN))
+        cmake.definitions['PERFETTO_PROTOC_BIN'] = self.deps_env_info['perfetto'].PERFETTO_PROTOC_BIN
+
+        self.output.info("PERFETTO_PROTOS_DIR={}".format(self.deps_env_info['perfetto'].PERFETTO_PROTOS_DIR))
+        cmake.definitions['PERFETTO_PROTOS_DIR'] = self.deps_env_info['perfetto'].PERFETTO_PROTOS_DIR
+
+        # TODO: separate is_lsan
+        cmake.definitions['ENABLE_ASAN'] = self.options['perfetto'].is_lsan
+
+        cmake.definitions['ENABLE_UBSAN'] = self.options['perfetto'].is_ubsan
+        cmake.definitions['ENABLE_ASAN'] = self.options['perfetto'].is_asan
+        cmake.definitions['ENABLE_MSAN'] = self.options['perfetto'].is_msan
+        cmake.definitions['ENABLE_TSAN'] = self.options['perfetto'].is_tsan
 
         self.add_cmake_option(cmake, "COMPILE_WITH_LLVM_TOOLS", self._is_compile_with_llvm_tools_enabled())
 

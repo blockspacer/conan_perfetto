@@ -108,67 +108,84 @@ else()
     "Disabled sanitizers")
 endif()
 
+find_package(Threads)
+
 # Test components
-find_package(absl REQUIRED)
-add_executable(${PROJECT_NAME} test_package.cpp)
-target_link_libraries(${PROJECT_NAME} absl::strings absl::flat_hash_map absl::flat_hash_set absl::int128 absl::time)
+find_package(perfetto REQUIRED)
+message(STATUS "PERFETTO_protozero_plugin_BIN=${PERFETTO_protozero_plugin_BIN}")
+message(STATUS "PERFETTO_PROTOC_BIN=${PERFETTO_PROTOC_BIN}")
+message(STATUS "PERFETTO_SDK_DIR=${PERFETTO_SDK_DIR}")
+message(STATUS "PERFETTO_GEN_DIR=${PERFETTO_GEN_DIR}")
+message(STATUS "PERFETTO_PROTOS_DIR=${PERFETTO_PROTOS_DIR}")
+
+set(protoc_outdir ${CMAKE_CURRENT_BINARY_DIR})
+
+set(protoc_generated_files
+  ${protoc_outdir}/chrome_track_event.pbzero.h
+  ${protoc_outdir}/chrome_track_event.pbzero.cc
+)
+
+set(protoc_input_files
+  ${CMAKE_CURRENT_SOURCE_DIR}/proto/chrome_track_event.proto
+)
+
+# Set GENERATED properties of your generated source file.
+# So cmake won't complain about missing source file.
+set_source_files_properties(
+  ${protoc_generated_files}
+  PROPERTIES GENERATED 1)
+
+set(FULL_PROTOC_CMD
+  ${PERFETTO_PROTOC_BIN}
+  "-I${CMAKE_CURRENT_SOURCE_DIR}/proto" 
+  "-I${PERFETTO_PROTOS_DIR}"
+  "--proto_path=${PERFETTO_PROTOS_DIR}"
+  "--plugin_out=wrapper_namespace=pbzero:${protoc_outdir}"
+  "--plugin=protoc-gen-plugin=${PERFETTO_protozero_plugin_BIN}"
+  "${protoc_input_files}"
+)
+
+add_custom_command(
+  OUTPUT ${protoc_generated_files}
+  COMMAND
+    "${CMAKE_COMMAND}"
+    -E
+    echo
+    "executing command: ${FULL_PROTOC_CMD}"
+  COMMAND
+    "${FULL_PROTOC_CMD}"
+  # code generator COMMAND will only be launched
+  # if some of DEPENDS files were changed.
+  DEPENDS
+    ${protoc_input_files}
+  # NOTE: uses COMMAND_EXPAND_LISTS
+  # to support generator expressions
+  # see https://cmake.org/cmake/help/v3.13/command/add_custom_target.html
+  COMMAND_EXPAND_LISTS
+  COMMENT "running ${PERFETTO_PROTOC_BIN}"
+  VERBATIM # to support \t for example
+)
+
+add_library(perfetto_sdk STATIC ${PERFETTO_SDK_DIR}/perfetto.cc)
+target_include_directories(perfetto_sdk PRIVATE 
+  ${PERFETTO_SDK_DIR}
+)
+
+add_executable(${PROJECT_NAME} 
+  test_package.cpp
+  ${protoc_generated_files}
+)
+target_link_libraries(${PROJECT_NAME} CONAN_PKG::perfetto perfetto_sdk ${CMAKE_THREAD_LIBS_INIT})
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
+target_include_directories(${PROJECT_NAME} PRIVATE 
+  ${protoc_outdir}
+  ${PERFETTO_GEN_DIR}
+)
 
-function(sanitize_library)
-  # see https://cliutils.gitlab.io/modern-cmake/chapters/basics/functions.html
-  #set(options ) # empty
-  set(oneValueArgs LIB_NAME ) # empty
-  # set(multiValueArgs ) # empty
-  #
-  cmake_parse_arguments(
-    ARGUMENTS # prefix of output variables
-    "${options}" # list of names of the boolean arguments (only defined ones will be true)
-    "${oneValueArgs}" # list of names of mono-valued arguments
-    "${multiValueArgs}" # list of names of multi-valued arguments (output variables are lists)
-    ${ARGN} # arguments of the function to parse, here we take the all original ones
-  )
-  #
-  set(LIB_NAME ${ARGUMENTS_LIB_NAME})
-  #
-  if(ENABLE_MSAN)
-    message(STATUS "enabling MSAN on ${LIB_NAME}")
-    add_msan_static_link(${LIB_NAME})
-    add_msan_definitions(${LIB_NAME})
-    add_msan_flags()
-  else(ENABLE_MSAN)
-    message(STATUS
-      "Disabled ENABLE_MSAN")
-  endif(ENABLE_MSAN)
-
-  if(ENABLE_TSAN)
-    message(STATUS "enabling TSAN on ${LIB_NAME}")
-    add_tsan_static_link(${LIB_NAME})
-    add_tsan_definitions(${LIB_NAME})
-    add_tsan_flags()
-  else(ENABLE_TSAN)
-    message(STATUS
-      "Disabled ENABLE_TSAN")
-  endif(ENABLE_TSAN)
-
-  if(ENABLE_ASAN)
-    message(STATUS "enabling ASAN on ${LIB_NAME}")
-    add_asan_static_link(${LIB_NAME})
-    add_asan_definitions(${LIB_NAME})
-    add_asan_flags()
-  else(ENABLE_ASAN)
-    message(STATUS
-      "Disabled ENABLE_ASAN")
-  endif(ENABLE_ASAN)
-
-  if(ENABLE_UBSAN)
-    message(STATUS "enabling UBSAN on ${LIB_NAME}")
-    add_ubsan_static_link(${LIB_NAME})
-    add_ubsan_definitions(${LIB_NAME})
-    add_ubsan_flags()
-  else(ENABLE_UBSAN)
-    message(STATUS
-      "Disabled ENABLE_UBSAN")
-  endif(ENABLE_UBSAN)
-endfunction(sanitize_library)
-
-sanitize_library(LIB_NAME ${PROJECT_NAME})
+# from cmake_helper_utils
+sanitize_lib(LIB_NAME ${PROJECT_NAME}
+  MSAN ${ENABLE_MSAN}
+  TSAN ${ENABLE_TSAN}
+  ASAN ${ENABLE_ASAN}
+  UBSAN ${ENABLE_UBSAN}
+)
