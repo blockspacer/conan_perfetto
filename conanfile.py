@@ -36,7 +36,6 @@ class PerfettoConan(conan_build_helper.CMakePackage):
     settings = "os_build", "os", "arch", "compiler", "build_type"
 
     perfetto_options = {
-        "is_debug" : [True, False],
         "is_fuzzer" : [True, False],
         "use_libfuzzer" : [True, False],
         "is_clang" : [True, False],
@@ -53,7 +52,6 @@ class PerfettoConan(conan_build_helper.CMakePackage):
     default_options = {
         "use_bundled_compiler":False,
         # perfetto options
-        "is_debug" : False,
         "is_fuzzer" : False,
         "use_libfuzzer" : False,
         "is_clang" : False,
