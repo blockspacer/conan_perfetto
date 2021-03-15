@@ -5,6 +5,8 @@
 
 #include <perfetto/sdk/perfetto.h>
 
+#include "perfetto_build_flags.h"
+
 #include "chrome_track_event.pbzero.h"
 
 int main()

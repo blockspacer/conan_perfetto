@@ -110,7 +110,6 @@ endif()
 
 find_package(Threads)
 
-# Test components
 find_package(perfetto REQUIRED)
 message(STATUS "PERFETTO_protozero_plugin_BIN=${PERFETTO_protozero_plugin_BIN}")
 message(STATUS "PERFETTO_PROTOC_BIN=${PERFETTO_PROTOC_BIN}")
@@ -168,6 +167,7 @@ add_custom_command(
 
 add_library(perfetto_sdk STATIC ${PERFETTO_SDK_DIR}/perfetto.cc)
 target_include_directories(perfetto_sdk PRIVATE 
+  # path to perfetto.h
   ${PERFETTO_SDK_DIR}
 )
 
@@ -180,6 +180,8 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
 target_include_directories(${PROJECT_NAME} PRIVATE 
   ${protoc_outdir}
   ${PERFETTO_GEN_DIR}
+  # path to perfetto_build_flags.h
+  ${PERFETTO_GEN_DIR}/build_config
 )
 
 # from cmake_helper_utils
