@@ -38,7 +38,6 @@ class PerfettoConan(conan_build_helper.CMakePackage):
     perfetto_options = {
         "is_fuzzer" : [True, False],
         "use_libfuzzer" : [True, False],
-        "is_clang" : [True, False],
         "is_hermetic_clang" : [True, False],
         "is_asan" : [True, False],
         "is_lsan" : [True, False],
@@ -54,7 +53,6 @@ class PerfettoConan(conan_build_helper.CMakePackage):
         # perfetto options
         "is_fuzzer" : False,
         "use_libfuzzer" : False,
-        "is_clang" : False,
         "is_hermetic_clang" : False,
         "is_asan" : False,
         "is_lsan" : False,
@@ -139,8 +137,6 @@ class PerfettoConan(conan_build_helper.CMakePackage):
         if not self.options.use_bundled_compiler:
             if self.settings.compiler == "apple-clang" or self.settings.compiler == "clang" or self.settings.compiler == "clang-cl":
                 opts += ["is_clang=true"]
-                if not self.options.is_clang:
-                    raise errors.ConanInvalidConfiguration("Detected clang. Need to build with -o is_clang=true")
             else:
                 opts += ["is_clang=false"]
 
@@ -223,6 +219,9 @@ class PerfettoConan(conan_build_helper.CMakePackage):
         # NOTE: we export `sdk` dir twice because it contains not only header files 
         # i.e. `sdk/perfetto.cc`
         self.copy('*', dst='sdk', src='{}/sdk'.format(self._source_subfolder))
+        # perfetto_trace_protos requires same protobuf version that was used during linking
+        # i.e. provide same protobuf headers files
+        self.copy('*', dst='buildtools/protobuf', src='{}/buildtools/protobuf'.format(self._source_subfolder))
         # NOTE: we use `/protos/protos` 
         # due to standard include paths `protos/perfetto/trace/track_event/track_event.proto`
         self.copy('*', dst='protos/protos', src='{}/protos'.format(self._source_subfolder))
@@ -290,7 +289,10 @@ class PerfettoConan(conan_build_helper.CMakePackage):
 
         ipc_plugin = "ipc_plugin.exe" if self.settings.os_build == "Windows" else "ipc_plugin"
         self.env_info.PERFETTO_ipc_plugin_BIN = os.path.normpath(os.path.join(self.package_folder, "bin", ipc_plugin))
-        
+
+        # must contain `protobuf/src/google/protobuf/port_def.inc`
+        self.env_info.PERFETTO_BUILDTOOLS_DIR = os.path.normpath(os.path.join(self.package_folder, "buildtools"))
+
         # must contain `perfetto.cc`
         self.env_info.PERFETTO_SDK_DIR = os.path.normpath(os.path.join(self.package_folder, "sdk"))
         
