@@ -280,26 +280,33 @@ class PerfettoConan(conan_build_helper.CMakePackage):
 
         protoc = "protoc.exe" if self.settings.os_build == "Windows" else "protoc"
         self.env_info.PERFETTO_PROTOC_BIN = os.path.normpath(os.path.join(self.package_folder, "bin", protoc))
+        self.user_info.PERFETTO_PROTOC_BIN = self.env_info.PERFETTO_PROTOC_BIN
 
         protozero_plugin = "protozero_plugin.exe" if self.settings.os_build == "Windows" else "protozero_plugin"
         self.env_info.PERFETTO_protozero_plugin_BIN = os.path.normpath(os.path.join(self.package_folder, "bin", protozero_plugin))
+        self.user_info.PERFETTO_protozero_plugin_BIN = self.env_info.PERFETTO_protozero_plugin_BIN
 
         cppgen_plugin = "cppgen_plugin.exe" if self.settings.os_build == "Windows" else "cppgen_plugin"
         self.env_info.PERFETTO_cppgen_plugin_BIN = os.path.normpath(os.path.join(self.package_folder, "bin", cppgen_plugin))
+        self.user_info.PERFETTO_cppgen_plugin_BIN = self.env_info.PERFETTO_cppgen_plugin_BIN
 
         ipc_plugin = "ipc_plugin.exe" if self.settings.os_build == "Windows" else "ipc_plugin"
         self.env_info.PERFETTO_ipc_plugin_BIN = os.path.normpath(os.path.join(self.package_folder, "bin", ipc_plugin))
+        self.user_info.PERFETTO_ipc_plugin_BIN = self.env_info.PERFETTO_ipc_plugin_BIN
 
         # must contain `protobuf/src/google/protobuf/port_def.inc`
         self.env_info.PERFETTO_BUILDTOOLS_DIR = os.path.normpath(os.path.join(self.package_folder, "buildtools"))
+        self.user_info.PERFETTO_BUILDTOOLS_DIR = self.env_info.PERFETTO_BUILDTOOLS_DIR
 
         # must contain `perfetto.cc`
         self.env_info.PERFETTO_SDK_DIR = os.path.normpath(os.path.join(self.package_folder, "sdk"))
-        
+        self.user_info.PERFETTO_SDK_DIR = self.env_info.PERFETTO_SDK_DIR
+
         # must contain `protos/perfetto/trace/track_event/track_event.pbzero.h`
         self.env_info.PERFETTO_GEN_DIR = os.path.normpath(os.path.join(self.package_folder, "gen"))
+        self.user_info.PERFETTO_GEN_DIR = self.env_info.PERFETTO_GEN_DIR
 
         # must contain `perfetto/trace/track_event/track_event.proto`
         self.env_info.PERFETTO_PROTOS_DIR = os.path.normpath(os.path.join(self.package_folder, "protos"))
-
+        self.user_info.PERFETTO_PROTOS_DIR = self.env_info.PERFETTO_PROTOS_DIR
 
