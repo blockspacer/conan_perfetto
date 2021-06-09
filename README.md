@@ -36,6 +36,13 @@ $LLVM_CONFIG --cxxflags
 ## Local build
 
 ```bash
+export VERBOSE=1
+export CONAN_REVISIONS_ENABLED=1
+export CONAN_VERBOSE_TRACEBACK=1
+export CONAN_PRINT_RUN_COMMANDS=1
+export CONAN_LOGGING_LEVEL=10
+export GIT_SSL_NO_VERIFY=true
+
 conan remote add conan-center https://api.bintray.com/conan/conan/conan-center False
 
 export PKG_NAME=perfetto/v13.0@conan/stable
@@ -43,28 +50,19 @@ export PKG_NAME=perfetto/v13.0@conan/stable
 (CONAN_REVISIONS_ENABLED=1 \
     conan remove --force $PKG_NAME || true)
 
-CONAN_REVISIONS_ENABLED=1 \
-    CONAN_VERBOSE_TRACEBACK=1 \
-    CONAN_PRINT_RUN_COMMANDS=1 \
-    CONAN_LOGGING_LEVEL=10 \
-    GIT_SSL_NO_VERIFY=true \
-    conan create . \
-      conan/stable \
-      -s build_type=Release \
-      -o perfetto:is_hermetic_clang=False \
-      --profile clang \
-      --build missing \
-      --build cascade
+conan create . \
+  conan/stable \
+  -s build_type=Release \
+  -o perfetto:is_hermetic_clang=False \
+  --profile clang \
+  --build missing \
+  --build cascade
 
-CONAN_REVISIONS_ENABLED=1 \
-    CONAN_VERBOSE_TRACEBACK=1 \
-    CONAN_PRINT_RUN_COMMANDS=1 \
-    CONAN_LOGGING_LEVEL=10 \
-    conan upload $PKG_NAME \
-      --all -r=conan-local \
-      -c --retry 3 \
-      --retry-wait 10 \
-      --force
+conan upload $PKG_NAME \
+  --all -r=conan-local \
+  -c --retry 3 \
+  --retry-wait 10 \
+  --force
 
 # clean build cache
 conan remove "*" --build --force

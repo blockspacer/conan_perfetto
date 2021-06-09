@@ -17,6 +17,16 @@ def merge_two_dicts(x, y):
     z.update(y)    # modifies z with y's keys and values & returns None
     return z
 
+# Users locally they get the 1.0.0 version,
+# without defining any env-var at all,
+# and CI servers will append the build number.
+# USAGE
+# version = get_version("1.0.0")
+# BUILD_NUMBER=-pre1+build2 conan export-pkg . my_channel/release
+def get_version(version):
+    bn = os.getenv("BUILD_NUMBER")
+    return (version + bn) if bn else version
+
 class PerfettoConan(conan_build_helper.CMakePackage):
     name = "perfetto"
 
@@ -25,7 +35,7 @@ class PerfettoConan(conan_build_helper.CMakePackage):
 
     homepage = "https://github.com/google/perfetto"
     repo_url = "https://github.com/google/perfetto.git"
-    version = "v13.0"
+    version = get_version("v13.0")
     url = "https://github.com/google/perfetto"
 
     license = "MIT"
