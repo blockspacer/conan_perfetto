@@ -107,7 +107,7 @@ class PerfettoConan(conan_build_helper.CMakePackage):
         self.build_requires("cmake_helper_utils/master@conan/stable")
         self.build_requires("google_gn/master@conan/stable")
         self.build_requires("ninja_installer/1.9.0@bincrafters/stable")
-        self.build_requires("cmake/3.15.5@conan/stable")
+        self.build_requires("cmake/3.22.3@conan/stable")
 
     def source(self):
         self.run('git clone -b {} --progress --depth 100 --recursive --recurse-submodules {} {}'.format(self.version, self.repo_url, self._source_subfolder))
