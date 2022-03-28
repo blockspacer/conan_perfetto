@@ -176,7 +176,7 @@ add_executable(${PROJECT_NAME}
   ${protoc_generated_files}
 )
 target_link_libraries(${PROJECT_NAME} CONAN_PKG::perfetto perfetto_sdk ${CMAKE_THREAD_LIBS_INIT})
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
+#set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
 target_include_directories(${PROJECT_NAME} PRIVATE 
   ${protoc_outdir}
   ${PERFETTO_GEN_DIR}

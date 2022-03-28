@@ -41,7 +41,6 @@ export CONAN_REVISIONS_ENABLED=1
 export CONAN_VERBOSE_TRACEBACK=1
 export CONAN_PRINT_RUN_COMMANDS=1
 export CONAN_LOGGING_LEVEL=10
-export GIT_SSL_NO_VERIFY=true
 
 conan remote add conan-center https://api.bintray.com/conan/conan/conan-center False
 
