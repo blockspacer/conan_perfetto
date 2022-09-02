@@ -43,38 +43,46 @@ class TestPackageConan(conan_build_helper.CMakePackage):
           self.build_requires("llvm_tools/master@conan/stable")
 
     def build(self):
-        cmake = CMake(self)
+        with tools.vcvars(self.settings, only_diff=False): # https://github.com/conan-io/conan/issues/6577
+            env_build = AutoToolsBuildEnvironment(self)
+            env_build.fpic = self.options['perfetto'].fpic
+            with tools.environment_append(env_build.vars):
+              cmake = CMake(self)
 
-        self.output.info("PERFETTO_SDK_DIR={}".format(self.deps_env_info['perfetto'].PERFETTO_SDK_DIR))
-        cmake.definitions['PERFETTO_SDK_DIR'] = self.deps_env_info['perfetto'].PERFETTO_SDK_DIR
+              #self.output.info("PERFETTO_SDK_DIR={}".format(self.deps_env_info['perfetto'].PERFETTO_SDK_DIR))
+              #cmake.definitions['PERFETTO_SDK_DIR'] = self.deps_env_info['perfetto'].PERFETTO_SDK_DIR
 
-        self.output.info("PERFETTO_GEN_DIR={}".format(self.deps_env_info['perfetto'].PERFETTO_GEN_DIR))
-        cmake.definitions['PERFETTO_GEN_DIR'] = self.deps_env_info['perfetto'].PERFETTO_GEN_DIR
+              #self.output.info("PERFETTO_GEN_DIR={}".format(self.deps_env_info['perfetto'].PERFETTO_GEN_DIR))
+              #cmake.definitions['PERFETTO_GEN_DIR'] = self.deps_env_info['perfetto'].PERFETTO_GEN_DIR
 
-        self.output.info("PERFETTO_protozero_plugin_BIN={}".format(self.deps_env_info['perfetto'].PERFETTO_protozero_plugin_BIN))
-        cmake.definitions['PERFETTO_protozero_plugin_BIN'] = self.deps_env_info['perfetto'].PERFETTO_protozero_plugin_BIN
-        
-        self.output.info("PERFETTO_PROTOC_BIN={}".format(self.deps_env_info['perfetto'].PERFETTO_PROTOC_BIN))
-        cmake.definitions['PERFETTO_PROTOC_BIN'] = self.deps_env_info['perfetto'].PERFETTO_PROTOC_BIN
+              #self.output.info("PERFETTO_protozero_plugin_BIN={}".format(self.deps_env_info['perfetto'].PERFETTO_protozero_plugin_BIN))
+              #cmake.definitions['PERFETTO_protozero_plugin_BIN'] = self.deps_env_info['perfetto'].PERFETTO_protozero_plugin_BIN
+              
+              #self.output.info("PERFETTO_PROTOC_BIN={}".format(self.deps_env_info['perfetto'].PERFETTO_PROTOC_BIN))
+              #cmake.definitions['PERFETTO_PROTOC_BIN'] = self.deps_env_info['perfetto'].PERFETTO_PROTOC_BIN
 
-        self.output.info("PERFETTO_PROTOS_DIR={}".format(self.deps_env_info['perfetto'].PERFETTO_PROTOS_DIR))
-        cmake.definitions['PERFETTO_PROTOS_DIR'] = self.deps_env_info['perfetto'].PERFETTO_PROTOS_DIR
+              #self.output.info("PERFETTO_PROTOS_DIR={}".format(self.deps_env_info['perfetto'].PERFETTO_PROTOS_DIR))
+              #cmake.definitions['PERFETTO_PROTOS_DIR'] = self.deps_env_info['perfetto'].PERFETTO_PROTOS_DIR
 
-        # TODO: separate is_lsan
-        cmake.definitions['ENABLE_ASAN'] = self.options['perfetto'].is_lsan
+              # TODO: separate is_lsan
+              cmake.definitions['ENABLE_ASAN'] = self.options['perfetto'].is_lsan
 
-        cmake.definitions['ENABLE_UBSAN'] = self.options['perfetto'].is_ubsan
-        cmake.definitions['ENABLE_ASAN'] = self.options['perfetto'].is_asan
-        cmake.definitions['ENABLE_MSAN'] = self.options['perfetto'].is_msan
-        cmake.definitions['ENABLE_TSAN'] = self.options['perfetto'].is_tsan
+              cmake.definitions['ENABLE_UBSAN'] = self.options['perfetto'].is_ubsan
+              cmake.definitions['ENABLE_ASAN'] = self.options['perfetto'].is_asan
+              cmake.definitions['ENABLE_MSAN'] = self.options['perfetto'].is_msan
+              cmake.definitions['ENABLE_TSAN'] = self.options['perfetto'].is_tsan
 
-        self.add_cmake_option(cmake, "COMPILE_WITH_LLVM_TOOLS", self._is_compile_with_llvm_tools_enabled())
+              self.add_cmake_option(cmake, "COMPILE_WITH_LLVM_TOOLS", self._is_compile_with_llvm_tools_enabled())
 
-        cmake.configure()
-        cmake.build()
+              cmake.configure()
+              cmake.build()
 
     def test(self):
         if not tools.cross_building(self):
             #bin_path = os.path.join("bin", "test_package")
             bin_path = os.path.join(self.build_folder, "perfetto_test_package")
             self.run("%s -s" % bin_path, run_environment=True)
+            #bin_path = os.path.join(self.build_folder, "perfetto_test_package_with_sdk")
+            #self.run("%s -s" % bin_path, run_environment=True)
+            #bin_path = os.path.join(self.build_folder, "perfetto_test_package_with_libperfetto")
+            #self.run("%s -s" % bin_path, run_environment=True)
